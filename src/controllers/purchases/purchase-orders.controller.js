@@ -1,13 +1,13 @@
-import getConnection from "../database/connection.mysql.js"
-import { variablesDB } from "../utils/params/const.database.js"
-import { responseQueries } from "../common/enum/queries/response.queries.js"
+import getConnection from "../../database/connection.mysql.js"
+import { variablesDB } from "../../utils/params/const.database.js"
+import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
-export const getTest = async (req, res) => {
+export const getPurchaseOrders = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.data_base;
     const query = `
-    SELECT * FROM ${db}.table_test`;
+    SELECT * FROM ${db}.PurchaseOrders`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
@@ -17,7 +17,7 @@ export const getTest = async (req, res) => {
 }
 
 // Save data to the table
-export const saveTest = async (req, res) => {
+export const savePurchaseOrders = async (req, res) => {
     const { column1, column2 } = req.body;
 
     if (!column1 || !column2) {
@@ -28,7 +28,7 @@ export const saveTest = async (req, res) => {
     const db = variablesDB.data_base;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.table_test (column1, column2) VALUES (?, ?)`,
+        `INSERT INTO ${db}.PurchaseOrders (column1, column2) VALUES (?, ?)`,
         [column1, column2]
     );
 
@@ -38,7 +38,7 @@ export const saveTest = async (req, res) => {
 };
 
 // Update table data
-export const updateTest = async (req, res) => {
+export const updatePurchaseOrders = async (req, res) => {
     // Depending on how the ID is obtained, whether by URL or from the body, it is saved in a variable in a different way.
 
     // From URL
@@ -56,7 +56,7 @@ export const updateTest = async (req, res) => {
         const db = variablesDB.data_base;
 
         const update = await conn.query(
-            `UPDATE ${db}.table_test SET column1 = ?, column2 = ? WHERE id = ?`,
+            `UPDATE ${db}.PurchaseOrders SET column1 = ?, column2 = ? WHERE id = ?`,
             [column1, column2, id]
         );
 
@@ -71,7 +71,7 @@ export const updateTest = async (req, res) => {
 };
 
 // Delete data from the table
-export const deleteTest = async (req, res) => {
+export const deletePurchaseOrders = async (req, res) => {
     // From URL
     // const { id } = req.params;
 
@@ -86,7 +86,7 @@ export const deleteTest = async (req, res) => {
         const db = variablesDB.data_base;
 
         const deleteQuery = `
-            DELETE FROM ${db}.table_test WHERE id = ?;
+            DELETE FROM ${db}.PurchaseOrders WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);
