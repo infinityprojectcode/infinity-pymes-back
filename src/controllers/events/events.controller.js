@@ -5,7 +5,7 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 // Get data from the table
 export const getEvents = async (req, res) => {
     const conn = await getConnection();
-    const db = variablesDB.data_base;
+    const db = variablesDB.database;
     const query = `
     SELECT * FROM ${db}.Events`;
     const select = await conn.query(query);
@@ -25,7 +25,7 @@ export const saveEvents = async (req, res) => {
     }
 
     const conn = await getConnection();
-    const db = variablesDB.data_base;
+    const db = variablesDB.database;
 
     const insert = await conn.query(
         `INSERT INTO ${db}.Events (column1, column2) VALUES (?, ?)`,
@@ -53,7 +53,7 @@ export const updateEvents = async (req, res) => {
 
     try {
         const conn = await getConnection();
-        const db = variablesDB.data_base;
+        const db = variablesDB.database;
 
         const update = await conn.query(
             `UPDATE ${db}.Events SET column1 = ?, column2 = ? WHERE id = ?`,
@@ -83,7 +83,7 @@ export const deleteEvents = async (req, res) => {
     }
     try {
         const conn = await getConnection();
-        const db = variablesDB.data_base;
+        const db = variablesDB.database;
 
         const deleteQuery = `
             DELETE FROM ${db}.Events WHERE id = ?;

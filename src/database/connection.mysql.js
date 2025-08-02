@@ -1,12 +1,12 @@
 import connectionMysql from "../config/database.js"
 
-let poll = null
+let pool = null
 
 const getConnection = async () => {
     try {
-        if (pool) return pool; // Reuse the existing connection
+        if (pool) return pool;
 
-        pool = await connectionMysql(); // It only runs once
+        pool = await connectionMysql();
         const ping = await pool.ping();
         if (!ping) {
             pool = null;
