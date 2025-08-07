@@ -52,7 +52,7 @@ app.listen(PORT, async () => {
         console.log("╠════════════════════════════════════════════════════════╣");
         console.log("║    Servicio iniciado en:                               ║");
         console.log("║                                                        ║");
-        console.log(`║    http://localhost:${PORT}/infinity-pymes/server/v1    ║`);
+        console.log(`║    http://localhost:${PORT}/infinity-pymes/server/v1      ║`);
         console.log("╚════════════════════════════════════════════════════════╝\n");
     }
 });

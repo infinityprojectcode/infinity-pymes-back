@@ -5,7 +5,7 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 // Get data from the table
 export const getBackups = async (req, res) => {
     const conn = await getConnection();
-    const db = variablesDB.data_base;
+    const db = variablesDB.database;
     const query = `
     SELECT * FROM ${db}.backups`;
     const select = await conn.query(query);
@@ -25,7 +25,7 @@ export const saveBackups = async (req, res) => {
     }
 
     const conn = await getConnection();
-    const db = variablesDB.data_base;
+    const db = variablesDB.database;
 
     const insert = await conn.query(
         `INSERT INTO ${db}.backups (business_id, file_name, file_path, created_by) VALUES (?, ?, ?, ?);`,
@@ -53,7 +53,7 @@ export const updateBackups = async (req, res) => {
 
     try {
         const conn = await getConnection();
-        const db = variablesDB.data_base;
+        const db = variablesDB.database;
 
         const update = await conn.query(
             `UPDATE ${db}.backups SET business_id = ?, file_name = ?, file_path = ?, created_by = ? WHERE id = ?;`,
@@ -83,7 +83,7 @@ export const deleteBackups = async (req, res) => {
     }
     try {
         const conn = await getConnection();
-        const db = variablesDB.data_base;
+        const db = variablesDB.database;
 
         const deleteQuery = `
             DELETE FROM ${db}.backups WHERE id = ?;
