@@ -7,7 +7,7 @@ export const getBackups = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.Backups`;
+    SELECT * FROM ${db}.backups`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
@@ -18,9 +18,9 @@ export const getBackups = async (req, res) => {
 
 // Save data to the table
 export const saveBackups = async (req, res) => {
-    const { column1, column2 } = req.body;
+    const { business_id, file_name, file_path, created_by } = req.body;
 
-    if (!column1 || !column2) {
+    if (!business_id || !file_name || !file_path || !created_by) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -28,8 +28,8 @@ export const saveBackups = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.Backups (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
+        `INSERT INTO ${db}.backups (business_id, file_name, file_path, created_by) VALUES (?, ?, ?, ?);`,
+        [business_id, file_name, file_path, created_by]
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
@@ -45,9 +45,9 @@ export const updateBackups = async (req, res) => {
     // const { id } = req.params;
 
     // From BODY
-    const { id, column1, column2 } = req.body;
+    const { id, business_id, file_name, file_path, created_by } = req.body;
 
-    if (!id || !column1 || !column2) {
+    if (!id || !business_id || !file_name || !file_path || !created_by) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -56,8 +56,8 @@ export const updateBackups = async (req, res) => {
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.Backups SET column1 = ?, column2 = ? WHERE id = ?`,
-            [column1, column2, id]
+            `UPDATE ${db}.backups SET business_id = ?, file_name = ?, file_path = ?, created_by = ? WHERE id = ?;`,
+            [business_id, file_name, file_path, created_by, id]
         );
 
         if (update.affectedRows === 0) {
@@ -86,7 +86,7 @@ export const deleteBackups = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.Backups WHERE id = ?;
+            DELETE FROM ${db}.backups WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);

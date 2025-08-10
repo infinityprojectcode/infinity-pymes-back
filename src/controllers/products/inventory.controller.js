@@ -3,11 +3,28 @@ import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
+
+// NOTA: Cambiar el business_id a un signo de pregunta (?) al momento de agregar el inicio de sesión, para que asi sea dinámico, actualmente es fijo por no haber login
+
 export const getInventory = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.Inventory`;
+    SELECT
+        i.id AS inventory_id,
+        p.name AS product_name,
+        cp.name_category AS category,
+        p.price,
+        i.quantity,
+        ss.name_state AS stock_state,
+        s.name AS supplier_name
+    FROM ${db}.inventory i
+    JOIN ${db}.products p ON i.product_id = p.id
+    JOIN ${db}.categories_products cp ON p.category_id = cp.id
+    JOIN ${db}.state_stock ss ON i.stock_state_id = ss.id
+    JOIN ${db}.suppliers s ON p.supplier_id = s.id
+    WHERE i.business_id = 1;
+    `;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
