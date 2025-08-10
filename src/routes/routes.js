@@ -77,7 +77,6 @@ import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
 import { getSupplierStatus, saveSupplierStatus, updateSupplierStatus, deleteSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
 import { getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
-import { getSuppliers2, saveSuppliers2, updateSuppliers2, deleteSuppliers2 } from "../controllers/suppliers/suppliers2.controller.js"
 
 // Database
 import { getConnect } from "../database/connection.controller.js"
@@ -357,13 +356,6 @@ export const routes = () => {
     router.post("/suppliers/i/suppliers", AuthorizationVerify, saveSuppliers)
     router.put("/suppliers/u/suppliers", AuthorizationVerify, updateSuppliers)
     router.delete("/suppliers/d/suppliers", AuthorizationVerify, deleteSuppliers)
-
-    // Suppliers2
-    router.get("/suppliers/g/suppliers2", AuthorizationVerify, getSuppliers2)
-    router.post("/suppliers/i/suppliers2", AuthorizationVerify, saveSuppliers2)
-    router.put("/suppliers/u/suppliers2", AuthorizationVerify, updateSuppliers2)
-    router.delete("/suppliers/d/suppliers2", AuthorizationVerify, deleteSuppliers2)
-
 
     // Database
     router.get("/connect/", ConnectionVerify, getConnect)
