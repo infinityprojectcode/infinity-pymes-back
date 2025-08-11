@@ -3,11 +3,13 @@ import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
+// NOTA: 
 export const getCategoriesProducts = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.CategoriesProducts`;
+    SELECT id, name_category FROM ${db}.categories_products WHERE business_id = 1;
+    `;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
@@ -28,7 +30,7 @@ export const saveCategoriesProducts = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.CategoriesProducts (column1, column2) VALUES (?, ?)`,
+        `INSERT INTO ${db}.categories_products (column1, column2) VALUES (?, ?)`,
         [column1, column2]
     );
 
@@ -56,7 +58,7 @@ export const updateCategoriesProducts = async (req, res) => {
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.CategoriesProducts SET column1 = ?, column2 = ? WHERE id = ?`,
+            `UPDATE ${db}.categories_products SET column1 = ?, column2 = ? WHERE id = ?`,
             [column1, column2, id]
         );
 
@@ -86,7 +88,7 @@ export const deleteCategoriesProducts = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.CategoriesProducts WHERE id = ?;
+            DELETE FROM ${db}.categories_products WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);
