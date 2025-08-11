@@ -76,7 +76,7 @@ import { getReportsExported, saveReportsExported, updateReportsExported, deleteR
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
 import { getSupplierStatus, saveSupplierStatus, updateSupplierStatus, deleteSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
-import {getMySuppliers, getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
+import { getMySuppliers, getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
 
 // Database
 import { getConnect } from "../database/connection.controller.js"
@@ -270,8 +270,8 @@ export const routes = () => {
     // Inventory
     router.get("/products/g/inventory", AuthorizationVerify, getInventory)
     router.post("/products/i/inventory", AuthorizationVerify, saveInventory)
-    router.put("/products/u/inventory", AuthorizationVerify, updateInventory)
-    router.delete("/products/d/inventory", AuthorizationVerify, deleteInventory)
+    router.put("/products/u/inventory/:id", AuthorizationVerify, updateInventory)
+    router.delete("/products/d/inventory/:id", AuthorizationVerify, deleteInventory)
 
     // Products
     router.get("/products/g/products", AuthorizationVerify, getProducts)
