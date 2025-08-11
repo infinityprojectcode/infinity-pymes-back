@@ -10,10 +10,11 @@ export const getMySuppliers = async (req, res) => {
     const db = variablesDB.database;
     const query = `
         SELECT
+            s.id,
             b.name AS name_bussines,
             sc.name AS contact_name,
             sc2.name AS category,
-            s.status_id,
+            ss.name status_name,
             s.payment_terms,
             SUM(ph.price) AS total_price
         FROM suppliers s
@@ -25,12 +26,16 @@ export const getMySuppliers = async (req, res) => {
             ON sc2.id = s.category_id
         INNER JOIN ${db}.purchase_history ph
             ON ph.business_id = s.business_id
-        AND ph.supplier_id = s.id
+            AND ph.supplier_id = s.id
+        RIGHT JOIN supplier_status ss
+	        ON ss.id = s.status_id
         WHERE b.id = ${idBussines}
         GROUP BY
+            s.id,
             b.name,
             sc.name,
             sc2.name,
+            ss.name,
             s.status_id,
             s.payment_terms;
     `;
