@@ -2,6 +2,46 @@ import getConnection from "../../database/connection.mysql.js"
 import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
+// Traer registros principales de mis proveedores
+
+export const getMySuppliers = async (req, res) => {
+    const idBussines = req.params.id || 1;
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+        SELECT
+            b.name AS name_bussines,
+            sc.name AS contact_name,
+            sc2.name AS category,
+            s.status_id,
+            s.payment_terms,
+            SUM(ph.price) AS total_price
+        FROM suppliers s
+        INNER JOIN ${db}.businesses b
+            ON b.id = s.business_id
+        LEFT JOIN ${db}.supplier_contacts sc
+            ON sc.supplier_id = s.id
+        LEFT JOIN ${db}.supplier_categories sc2
+            ON sc2.id = s.category_id
+        INNER JOIN ${db}.purchase_history ph
+            ON ph.business_id = s.business_id
+        AND ph.supplier_id = s.id
+        WHERE b.id = ${idBussines}
+        GROUP BY
+            b.name,
+            sc.name,
+            sc2.name,
+            s.status_id,
+            s.payment_terms;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
 // Get data from the table
 export const getSuppliers = async (req, res) => {
     const conn = await getConnection();
