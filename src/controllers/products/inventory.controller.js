@@ -13,6 +13,7 @@ export const getInventory = async (req, res) => {
     SELECT
         i.id AS inventory_id,
         p.name AS product_name,
+        cp.id AS id_category,
         cp.name_category AS category,
         p.price,
         i.quantity,
