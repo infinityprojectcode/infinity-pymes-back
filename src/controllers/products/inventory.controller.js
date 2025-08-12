@@ -23,7 +23,8 @@ export const getInventory = async (req, res) => {
     JOIN ${db}.categories_products cp ON p.category_id = cp.id
     JOIN ${db}.state_stock ss ON i.stock_state_id = ss.id
     JOIN ${db}.suppliers s ON p.supplier_id = s.id
-    WHERE i.business_id = 1;
+    WHERE i.business_id = 1
+    ORDER BY i.id ASC;
     `;
     const select = await conn.query(query);
     if (!select) return res.json({
@@ -34,19 +35,34 @@ export const getInventory = async (req, res) => {
 }
 
 // Save data to the table
+// NOTA: Cuando se haga el login se deben auto completar desde el front los valores que no son una variable (o sea los que son data quemada en la lista de la consulta)
 export const saveInventory = async (req, res) => {
-    const { column1, column2 } = req.body;
+    const { name, category_id, price, quantity } = req.body;
 
-    if (!column1 || !column2) {
+    const getStatus = (stock) => {
+        if (quantity == 0) return 3;
+        if (quantity <= 5) return 2;
+        return 1;
+    };
+
+    const stock_state_id = getStatus(quantity)
+
+    if (!name || !category_id || !price || !quantity || !stock_state_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
     const conn = await getConnection();
     const db = variablesDB.database;
 
+    // business_id, category_id, supplier_id, name, description, price, stock, stock_state_id, quantity, location
+
     const insert = await conn.query(
-        `INSERT INTO ${db}.Inventory (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
+        `
+        CALL ${db}.insert_product_inventory(
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        );
+        `,
+        [1, category_id, 1, name, null, price, quantity, stock_state_id, quantity, 'Bodega Central']
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
@@ -59,22 +75,35 @@ export const updateInventory = async (req, res) => {
     // Depending on how the ID is obtained, whether by URL or from the body, it is saved in a variable in a different way.
 
     // From URL
-    // const { id } = req.params;
+    const { id } = req.params;
+    const product_id = id
 
     // From BODY
-    const { id, column1, column2 } = req.body;
+    const { category_id, name, price, quantity } = req.body;
 
-    if (!id || !column1 || !column2) {
+    const getStatus = (stock) => {
+        if (quantity == 0) return 3;
+        if (quantity <= 5) return 2;
+        return 1;
+    };
+
+    const stock_state_id = getStatus(quantity)
+
+    if (!product_id || !category_id || !name || !price || !quantity || !stock_state_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
+
+    // product_id, category_id, supplier_id, name, description, price, stock, quantity, location, stock_state_id
 
     try {
         const conn = await getConnection();
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.Inventory SET column1 = ?, column2 = ? WHERE id = ?`,
-            [column1, column2, id]
+            `
+            CALL ${db}.update_product_and_inventory( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `,
+            [product_id, category_id, 1, name, null, price, quantity, quantity, 'Bodega Central', stock_state_id]
         );
 
         if (update.affectedRows === 0) {
@@ -90,10 +119,10 @@ export const updateInventory = async (req, res) => {
 // Delete data from the table
 export const deleteInventory = async (req, res) => {
     // From URL
-    // const { id } = req.params;
+    const { id } = req.params;
 
     // From BODY
-    const { id } = req.body;
+    // const { id } = req.body;
 
     if (!id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
@@ -103,12 +132,12 @@ export const deleteInventory = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.Inventory WHERE id = ?;
+            CALL ${db}.delete_product_and_inventory(?);
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);
 
-        if (result.affectedRows === 0) {
+        if (result[0]?.status === 'NOT_FOUND') {
             return res.json(responseQueries.error({ message: "No se encontró el ID o el ID no es válido o inexistente" }));
         }
 

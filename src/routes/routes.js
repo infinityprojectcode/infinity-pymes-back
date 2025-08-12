@@ -271,8 +271,8 @@ export const routes = () => {
     // Inventory
     router.get("/products/g/inventory", AuthorizationVerify, getInventory)
     router.post("/products/i/inventory", AuthorizationVerify, saveInventory)
-    router.put("/products/u/inventory", AuthorizationVerify, updateInventory)
-    router.delete("/products/d/inventory", AuthorizationVerify, deleteInventory)
+    router.put("/products/u/inventory/:id", AuthorizationVerify, updateInventory)
+    router.delete("/products/d/inventory/:id", AuthorizationVerify, deleteInventory)
 
     // Products
     router.get("/products/g/products", AuthorizationVerify, getProducts)
