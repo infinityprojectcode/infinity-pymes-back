@@ -12,8 +12,8 @@ export const getMyOrders = async (req, res) => {
     SELECT
       CONCAT(po.code, '-', YEAR(CURDATE()), '-', po.id) AS number_order,
       s.name name_supplier,
-      s.created_at,
-      po.order_date,
+      DATE_FORMAT(po.created_at, '%Y-%m-%d') created_at,
+	    DATE_FORMAT(po.order_date, '%Y-%m-%d') order_date,
       po.total,
       pos.name state_name
     FROM ${db}.purchase_orders po
