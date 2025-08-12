@@ -90,7 +90,7 @@ export const updateInventory = async (req, res) => {
 
     const stock_state_id = getStatus(quantity)
 
-    if (!product_id || !category_id || !name || !price || !quantity || !stock_state_id) {
+    if (!product_id || !category_id || !name || price === undefined || price === null || !quantity || !stock_state_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
