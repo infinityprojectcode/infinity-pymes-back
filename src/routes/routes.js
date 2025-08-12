@@ -76,7 +76,8 @@ import { getReportsExported, saveReportsExported, updateReportsExported, deleteR
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
 import { getSupplierStatus, saveSupplierStatus, updateSupplierStatus, deleteSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
-import { getMySuppliers, getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
+import {getMySuppliers, getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
+import { getMyOrders } from "../controllers/suppliers/supplier-orders.controller.js";
 
 // Database
 import { getConnect } from "../database/connection.controller.js"
@@ -333,6 +334,7 @@ export const routes = () => {
 
     // --------------- Suppliers ---------------
     router.post("/suppliers/i/supplier-my-bussines/:id", AuthorizationVerify, getMySuppliers)
+    router.post("/suppliers/i/orders/:id", AuthorizationVerify, getMyOrders)
 
     // Supplier Categories
     router.get("/suppliers/g/supplier-categories", AuthorizationVerify, getSupplierCategories)
