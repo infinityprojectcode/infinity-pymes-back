@@ -4,11 +4,28 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getBillingDetail = async (req, res) => {
+    const { billing_id } = req.query;
+
+    if (!billing_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.BillingDetail`;
-    const select = await conn.query(query);
+    SELECT
+        bd.id,
+        bd.billing_id,
+        bd.quantity,
+        p.name AS product_name,
+        p.price  AS product_price,
+        bd.subtotal
+    FROM ${db}.billing_detail bd
+    JOIN ${db}.products p ON bd.product_id = p.id
+    WHERE bd.billing_id = ?
+    ORDER BY bd.id ASC;
+    `;
+    const select = await conn.query(query, [billing_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -28,7 +45,7 @@ export const saveBillingDetail = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.BillingDetail (column1, column2) VALUES (?, ?)`,
+        `INSERT INTO ${db}.billing_detail (column1, column2) VALUES (?, ?)`,
         [column1, column2]
     );
 
@@ -56,7 +73,7 @@ export const updateBillingDetail = async (req, res) => {
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.BillingDetail SET column1 = ?, column2 = ? WHERE id = ?`,
+            `UPDATE ${db}.billing_detail SET column1 = ?, column2 = ? WHERE id = ?`,
             [column1, column2, id]
         );
 
@@ -86,7 +103,7 @@ export const deleteBillingDetail = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.BillingDetail WHERE id = ?;
+            DELETE FROM ${db}.billing_detail WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);
