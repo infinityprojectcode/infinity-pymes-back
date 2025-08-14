@@ -7,7 +7,7 @@ export const getCustomers = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.Customers`;
+    SELECT id, name FROM ${db}.customers`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
@@ -28,7 +28,7 @@ export const saveCustomers = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.Customers (column1, column2) VALUES (?, ?)`,
+        `INSERT INTO ${db}.customers (column1, column2) VALUES (?, ?)`,
         [column1, column2]
     );
 
@@ -56,7 +56,7 @@ export const updateCustomers = async (req, res) => {
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.Customers SET column1 = ?, column2 = ? WHERE id = ?`,
+            `UPDATE ${db}.customers SET column1 = ?, column2 = ? WHERE id = ?`,
             [column1, column2, id]
         );
 
@@ -86,7 +86,7 @@ export const deleteCustomers = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.Customers WHERE id = ?;
+            DELETE FROM ${db}.customers WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);

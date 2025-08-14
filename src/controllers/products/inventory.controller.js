@@ -13,6 +13,7 @@ export const getInventory = async (req, res) => {
     SELECT
         i.id AS inventory_id,
         p.name AS product_name,
+        cp.id AS id_category,
         cp.name_category AS category,
         p.price,
         i.quantity,
@@ -89,7 +90,7 @@ export const updateInventory = async (req, res) => {
 
     const stock_state_id = getStatus(quantity)
 
-    if (!product_id || !category_id || !name || !price || !quantity || !stock_state_id) {
+    if (!product_id || !category_id || !name || price === undefined || price === null || !quantity || !stock_state_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
