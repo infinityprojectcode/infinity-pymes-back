@@ -35,19 +35,24 @@ export const getBilling = async (req, res) => {
 }
 
 // Save data to the table
+// NOTA: Agregar la variable de business_id cuando exista login
 export const saveBilling = async (req, res) => {
-    const { column1, column2 } = req.body;
+    const { customer_id, product_price, expiration_at, quantity, product_id } = req.body;
 
-    if (!column1 || !column2) {
+    if (!customer_id || !product_price || !expiration_at || !quantity || !product_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
+
+    const subtotal = quantity * product_price
 
     const conn = await getConnection();
     const db = variablesDB.database;
 
+    // business_id, customer_id, total, state_billing_id, expiration_at, quantity, product_id, subtotal
+
     const insert = await conn.query(
-        `INSERT INTO ${db}.billing (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
+        `CALL ${db}.insert_billing_and_detail(?, ?, ?, ?, ?, ?, ?, ?);`,
+        [1, customer_id, quantity, 2, expiration_at, quantity, product_id, subtotal]
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
