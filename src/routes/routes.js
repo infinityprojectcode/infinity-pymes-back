@@ -138,7 +138,7 @@ export const routes = () => {
     router.get("/billing/g/billing", AuthorizationVerify, getBilling)
     router.post("/billing/i/billing", AuthorizationVerify, saveBilling)
     router.put("/billing/u/billing", AuthorizationVerify, updateBilling)
-    router.delete("/billing/d/billing", AuthorizationVerify, deleteBilling)
+    router.delete("/billing/d/billing/:id", AuthorizationVerify, deleteBilling)
 
     // State Billing
     router.get("/billing/g/state-billing", AuthorizationVerify, getStateBilling)

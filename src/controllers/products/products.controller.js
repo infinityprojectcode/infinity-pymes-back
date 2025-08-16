@@ -7,7 +7,7 @@ export const getProducts = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT id, name FROM ${db}.products`;
+    SELECT id, name, price FROM ${db}.products`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
