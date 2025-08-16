@@ -48,10 +48,8 @@ export const saveBilling = async (req, res) => {
     const db = variablesDB.database;
 
     try {
-        // 🔹 Iniciar transacción
         await conn.beginTransaction();
 
-        // 1️⃣ Crear billing con total=0
         const [billingResult] = await conn.query(
             `INSERT INTO ${db}.billing 
              (business_id, customer_id, total, state_billing_id, expiration_at)
@@ -63,7 +61,6 @@ export const saveBilling = async (req, res) => {
 
         let total = 0;
 
-        // 2️⃣ Insertar detalles con el billing_id correcto
         for (const item of details) {
             const { product_id, quantity, price } = item;
 
@@ -81,13 +78,11 @@ export const saveBilling = async (req, res) => {
             );
         }
 
-        // 3️⃣ Actualizar el total en billing
         await conn.query(
             `UPDATE ${db}.billing SET total = ? WHERE id = ?`,
             [total, billingId]
         );
 
-        // ✅ Confirmar transacción
         await conn.commit();
 
         return res.json(responseQueries.success({
@@ -96,7 +91,6 @@ export const saveBilling = async (req, res) => {
         }));
 
     } catch (error) {
-        // ❌ Rollback si algo falla
         await conn.rollback();
         return res.json(responseQueries.error({ message: error.message }));
     }
@@ -138,11 +132,7 @@ export const updateBilling = async (req, res) => {
 
 // Delete data from the table
 export const deleteBilling = async (req, res) => {
-    // From URL
     const { id } = req.params;
-
-    // From BODY
-    // const { id } = req.body;
 
     if (!id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
