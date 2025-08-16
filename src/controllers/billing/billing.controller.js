@@ -99,8 +99,6 @@ export const saveBilling = async (req, res) => {
         // ❌ Rollback si algo falla
         await conn.rollback();
         return res.json(responseQueries.error({ message: error.message }));
-    } finally {
-        await conn.end(); // ✅ cierra la conexión
     }
 };
 
@@ -141,10 +139,10 @@ export const updateBilling = async (req, res) => {
 // Delete data from the table
 export const deleteBilling = async (req, res) => {
     // From URL
-    // const { id } = req.params;
+    const { id } = req.params;
 
     // From BODY
-    const { id } = req.body;
+    // const { id } = req.body;
 
     if (!id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
