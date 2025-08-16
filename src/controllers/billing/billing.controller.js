@@ -37,28 +37,65 @@ export const getBilling = async (req, res) => {
 // Save data to the table
 // NOTA: Agregar la variable de business_id cuando exista login
 export const saveBilling = async (req, res) => {
-    const { customer_id, product_price, expiration_at, quantity, product_id } = req.body;
+    const { customer_id, expiration_at, details } = req.body;
+    // details: [{ product_id, quantity, price }, ...]
 
-    if (!customer_id || !product_price || !expiration_at || !quantity || !product_id) {
+    if (!customer_id || !expiration_at || !Array.isArray(details) || details.length === 0) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
-
-    const subtotal = quantity * product_price
 
     const conn = await getConnection();
     const db = variablesDB.database;
 
-    // business_id, customer_id, total, state_billing_id, expiration_at, quantity, product_id, subtotal
+    try {
+        await conn.beginTransaction();
 
-    const insert = await conn.query(
-        `CALL ${db}.insert_billing_and_detail(?, ?, ?, ?, ?, ?, ?, ?);`,
-        [1, customer_id, quantity, 2, expiration_at, quantity, product_id, subtotal]
-    );
+        const [billingResult] = await conn.query(
+            `INSERT INTO ${db}.billing 
+             (business_id, customer_id, total, state_billing_id, expiration_at)
+             VALUES (?, ?, ?, ?, ?)`,
+            [1, customer_id, 0, 2, expiration_at]
+        );
 
-    if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
+        const billingId = billingResult.insertId;
 
-    return res.json(responseQueries.success({ message: "Datos guardados con éxito" }));
+        let total = 0;
+
+        for (const item of details) {
+            const { product_id, quantity, price } = item;
+
+            if (!product_id || !quantity || !price) {
+                throw new Error("Detalle incompleto");
+            }
+
+            const subtotal = quantity * price;
+            total += quantity;
+
+            await conn.query(
+                `INSERT INTO ${db}.billing_detail (billing_id, quantity, product_id, subtotal) 
+                 VALUES (?, ?, ?, ?)`,
+                [billingId, quantity, product_id, subtotal]
+            );
+        }
+
+        await conn.query(
+            `UPDATE ${db}.billing SET total = ? WHERE id = ?`,
+            [total, billingId]
+        );
+
+        await conn.commit();
+
+        return res.json(responseQueries.success({
+            message: "Datos guardados con éxito",
+            billing_id: billingId
+        }));
+
+    } catch (error) {
+        await conn.rollback();
+        return res.json(responseQueries.error({ message: error.message }));
+    }
 };
+
 
 // Update table data
 export const updateBilling = async (req, res) => {
@@ -95,11 +132,7 @@ export const updateBilling = async (req, res) => {
 
 // Delete data from the table
 export const deleteBilling = async (req, res) => {
-    // From URL
-    // const { id } = req.params;
-
-    // From BODY
-    const { id } = req.body;
+    const { id } = req.params;
 
     if (!id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
