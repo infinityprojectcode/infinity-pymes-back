@@ -7,7 +7,7 @@ export const getProducts = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.Products`;
+    SELECT id, name, price FROM ${db}.products`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
@@ -28,7 +28,7 @@ export const saveProducts = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.Products (column1, column2) VALUES (?, ?)`,
+        `INSERT INTO ${db}.products (column1, column2) VALUES (?, ?)`,
         [column1, column2]
     );
 
@@ -56,7 +56,7 @@ export const updateProducts = async (req, res) => {
         const db = variablesDB.database;
 
         const update = await conn.query(
-            `UPDATE ${db}.Products SET column1 = ?, column2 = ? WHERE id = ?`,
+            `UPDATE ${db}.products SET column1 = ?, column2 = ? WHERE id = ?`,
             [column1, column2, id]
         );
 
@@ -86,7 +86,7 @@ export const deleteProducts = async (req, res) => {
         const db = variablesDB.database;
 
         const deleteQuery = `
-            DELETE FROM ${db}.Products WHERE id = ?;
+            DELETE FROM ${db}.products WHERE id = ?;
         `;
 
         const [result] = await conn.query(deleteQuery, [id]);
