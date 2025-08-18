@@ -10,7 +10,7 @@ import { ConnectionVerify } from "../middleware/connection.js"
 import { getModulePermissions, saveModulePermissions, updateModulePermissions, deleteModulePermissions } from "../controllers/auth/module-permissions.controller.js"
 import { getRoles, saveRoles, updateRoles, deleteRoles } from "../controllers/auth/roles.controller.js"
 import { getUserRoles, saveUserRoles, updateUserRoles, deleteUserRoles } from "../controllers/auth/user-roles.controller.js"
-import { getUsers, saveUsers, updateUsers, deleteUsers } from "../controllers/auth/users.controller.js"
+import { registerUser, loginUser, generateKeyPair } from "../controllers/auth/users.controller.js"
 
 // Backups
 import { getBackups, saveBackups, updateBackups, deleteBackups } from "../controllers/backups/backups.controller.js"
@@ -75,9 +75,9 @@ import { getReportsExported, saveReportsExported, updateReportsExported, deleteR
 // Suppliers
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
-import { getSupplierStatus, saveSupplierStatus, updateSupplierStatus, deleteSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
-import {getMySuppliers, getSuppliers, saveSuppliers, updateSuppliers, deleteSuppliers } from "../controllers/suppliers/suppliers.controller.js"
-import { getMyOrders } from "../controllers/suppliers/supplier-orders.controller.js";
+import {getMySuppliers, saveSuppliers, getMySuppliersFilter } from "../controllers/suppliers/suppliers.controller.js"
+import { getMyOrders, saveSupplierOrdes } from "../controllers/suppliers/supplier-orders.controller.js";
+import { getSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
 
 // Database
 import { getConnect } from "../database/connection.controller.js"
@@ -107,10 +107,9 @@ export const routes = () => {
     router.delete("/auth/d/user-roles", AuthorizationVerify, deleteUserRoles)
 
     // Users
-    router.get("/auth/g/users", AuthorizationVerify, getUsers)
-    router.post("/auth/i/users", AuthorizationVerify, saveUsers)
-    router.put("/auth/u/users", AuthorizationVerify, updateUsers)
-    router.delete("/auth/d/users", AuthorizationVerify, deleteUsers)
+    router.post("/auth/i/registers/users", AuthorizationVerify, registerUser)
+    router.post("/auth/i/login/users", AuthorizationVerify, loginUser)
+    router.get("/auth/g/generate",AuthorizationVerify, generateKeyPair)
 
     // --------------- Backups ---------------
 
@@ -332,9 +331,13 @@ export const routes = () => {
     router.put("/reports/u/reports-exported", AuthorizationVerify, updateReportsExported)
     router.delete("/reports/d/reports-exported", AuthorizationVerify, deleteReportsExported)
 
-    // --------------- Suppliers ---------------
+    // Suppliers
     router.post("/suppliers/i/supplier-my-bussines/:id", AuthorizationVerify, getMySuppliers)
     router.post("/suppliers/i/orders/:id", AuthorizationVerify, getMyOrders)
+    router.post("/suppliers/i/suppliers", AuthorizationVerify, saveSuppliers)
+    router.get("/suppliers/g/suppliers/filter/:id", AuthorizationVerify, getMySuppliersFilter)
+    router.post("/suppliers/i/suppliers/orders", AuthorizationVerify, saveSupplierOrdes)
+    router.get("/suppliers/g/supplier-status", AuthorizationVerify, getSupplierStatus)
 
     // Supplier Categories
     router.get("/suppliers/g/supplier-categories", AuthorizationVerify, getSupplierCategories)
@@ -350,15 +353,6 @@ export const routes = () => {
 
     // Supplier Status
     router.get("/suppliers/g/supplier-status", AuthorizationVerify, getSupplierStatus)
-    router.post("/suppliers/i/supplier-status", AuthorizationVerify, saveSupplierStatus)
-    router.put("/suppliers/u/supplier-status", AuthorizationVerify, updateSupplierStatus)
-    router.delete("/suppliers/d/supplier-status", AuthorizationVerify, deleteSupplierStatus)
-
-    // Suppliers
-    router.get("/suppliers/g/suppliers", AuthorizationVerify, getSuppliers)
-    router.post("/suppliers/i/suppliers", AuthorizationVerify, saveSuppliers)
-    router.put("/suppliers/u/suppliers", AuthorizationVerify, updateSuppliers)
-    router.delete("/suppliers/d/suppliers", AuthorizationVerify, deleteSuppliers)
 
     // Database
     router.get("/connect/", ConnectionVerify, getConnect)
