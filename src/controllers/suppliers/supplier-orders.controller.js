@@ -21,7 +21,7 @@ export const getMyOrders = async (req, res) => {
       ON s.id = po.supplier_id
     LEFT JOIN ${db}.purchase_order_status pos
       ON pos.id = po.status_id
-    WHERE po.business_id = ${idBussines }
+    WHERE po.business_id = ${idBussines}
     ORDER BY po.order_date DESC;
   `;
   const select = await conn.query(query);
@@ -31,3 +31,86 @@ export const getMyOrders = async (req, res) => {
   });
   return res.json(select[0]);
 }
+
+// Guardar orden de compra
+export const saveSupplierOrdes = async (req, res) => {
+  const {
+    business_id,
+    code,
+    supplier_id,
+    status_id,
+    subtotal,
+    tax,
+    total,
+    products,
+  } = req.body;
+
+  if (
+    !business_id ||
+    !code ||
+    !supplier_id ||
+    !status_id ||
+    !subtotal ||
+    !tax ||
+    !total ||
+    !products ||
+    products.length === 0
+  ) {
+    return res.json(responseQueries.error({ message: "Datos incompletos" }));
+  }
+
+  let conn;
+  try {
+    conn = await getConnection();
+    const db = variablesDB.database;
+
+    await conn.beginTransaction();
+
+    // Insertar cabecera de orden
+    const queryOrder = `
+      INSERT INTO ${db}.purchase_orders
+        (business_id, code, supplier_id, order_date, status_id, subtotal, tax, total, created_at)
+      VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, NOW())
+    `;
+    const valuesOrder = [
+      business_id,
+      code,
+      supplier_id,
+      status_id,
+      subtotal,
+      tax,
+      total,
+    ];
+    const [orderResult] = await conn.query(queryOrder, valuesOrder);
+
+    const orderId = orderResult.insertId;
+
+    // Insertar productos (detalle)
+    const queryItems = `
+      INSERT INTO ${db}.purchase_order_items
+        (purchase_order_id, product_id, quantity, unit_price, total)
+      VALUES ?
+    `;
+
+    const valuesItems = products.map((p) => [
+      orderId,
+      p.product_id,
+      p.quantity,
+      p.price,
+      p.quantity * p.price,
+    ]);
+
+    await conn.query(queryItems, [valuesItems]);
+
+    await conn.commit();
+
+    return res.json(
+      responseQueries.success({ message: "Orden de compra guardada correctamente" })
+    );
+  } catch (error) {
+    if (conn) await conn.rollback();
+    return res.json(
+      responseQueries.error({ message: "Error al guardar la orden de compra", error })
+    );
+  }
+};

@@ -7,7 +7,7 @@ export const getSupplierCategories = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.supplierCategories`;
+    SELECT * FROM ${db}.supplier_categories`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
