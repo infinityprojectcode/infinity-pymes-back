@@ -2,16 +2,33 @@ import getConnection from "../../database/connection.mysql.js"
 import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
-// Traer registros principales de mis proveedores
+// Traer proveedores de mi negocio
+export const getMySuppliersFilter = async (req, res) => {
+    const idBussines = req.params.id;
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+        SELECT s.id, s.name FROM ${db}.suppliers s
+        WHERE s.business_id = ${idBussines}
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
 
+
+// Traer registros principales de mis proveedores
 export const getMySuppliers = async (req, res) => {
-    const idBussines = req.params.id || 1;
+    const idBussines = req.params.id;
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
         SELECT
             s.id,
-            b.name AS name_bussines,
+            s.name AS name_bussines,
             sc.name AS contact_name,
             sc2.name AS category,
             ss.name status_name,
@@ -24,7 +41,7 @@ export const getMySuppliers = async (req, res) => {
             ON sc.supplier_id = s.id
         LEFT JOIN ${db}.supplier_categories sc2
             ON sc2.id = s.category_id
-        INNER JOIN ${db}.purchase_history ph
+        LEFT JOIN ${db}.purchase_history ph
             ON ph.business_id = s.business_id
             AND ph.supplier_id = s.id
         RIGHT JOIN supplier_status ss
@@ -47,102 +64,74 @@ export const getMySuppliers = async (req, res) => {
     return res.json(select[0]);
 }
 
-// Get data from the table
-export const getSuppliers = async (req, res) => {
-    const conn = await getConnection();
-    const db = variablesDB.database;
-    const query = `
-    SELECT * FROM ${db}.Suppliers`;
-    const select = await conn.query(query);
-    if (!select) return res.json({
-        status: 500,
-        message: 'Error obteniendo los datos'
-    });
-    return res.json(select[0]);
-}
-
-// Save data to the table
+// Crear proveedor
 export const saveSuppliers = async (req, res) => {
-    const { column1, column2 } = req.body;
-
-    if (!column1 || !column2) {
-        return res.json(responseQueries.error({ message: "Datos incompletos" }));
-    }
-
     const conn = await getConnection();
     const db = variablesDB.database;
-
-    const insert = await conn.query(
-        `INSERT INTO ${db}.Suppliers (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
-    );
-
-    if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
-
-    return res.json(responseQueries.success({ message: "Datos guardados con éxito" }));
-};
-
-// Update table data
-export const updateSuppliers = async (req, res) => {
-    // Depending on how the ID is obtained, whether by URL or from the body, it is saved in a variable in a different way.
-
-    // From URL
-    // const { id } = req.params;
-
-    // From BODY
-    const { id, column1, column2 } = req.body;
-
-    if (!id || !column1 || !column2) {
-        return res.json(responseQueries.error({ message: "Datos incompletos" }));
-    }
+    await conn.beginTransaction();
 
     try {
-        const conn = await getConnection();
-        const db = variablesDB.database;
+        const {
+            business_id,
+            name,
+            tax_id,
+            address,
+            phone,
+            email,
+            website,
+            payment_terms,
+            payment_method,
+            currency,
+            status_id,
+            category_id,
+            contact_name,
+            contact_title,
+            contact_email,
+            contact_phone
+        } = req.body;
 
-        const update = await conn.query(
-            `UPDATE ${db}.Suppliers SET column1 = ?, column2 = ? WHERE id = ?`,
-            [column1, column2, id]
+        if (
+            !business_id || !name || !tax_id || !contact_name || !contact_email
+        ) {
+            return res.json(responseQueries.error({ message: "Datos incompletos" }));
+        }
+
+        // Insertar en suppliers
+        const supplierInsert = await conn.query(
+            `INSERT INTO ${db}.suppliers
+            (business_id, name, tax_id, address, phone, email, website, payment_terms, payment_method, currency, status_id, category_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+            [
+                business_id, name, tax_id, address, phone, email, website,
+                payment_terms, payment_method, currency, status_id, category_id
+            ]
         );
 
-        if (update.affectedRows === 0) {
-            return res.json(responseQueries.error({ message: "No se encontró el ID" }));
+        if (!supplierInsert || !supplierInsert[0].insertId) {
+            await conn.rollback();
+            return res.json(responseQueries.error({ message: "Error al guardar el proveedor" }));
         }
 
-        return res.json(responseQueries.success({ message: "Datos actualizados con éxito" }));
-    } catch (error) {
-        return res.json(responseQueries.error({ message: "Error al actualizar los datos", error }));
-    }
-};
+        const supplierId = supplierInsert[0].insertId;
 
-// Delete data from the table
-export const deleteSuppliers = async (req, res) => {
-    // From URL
-    // const { id } = req.params;
+        // Insertar contacto asociado
+        const contactInsert = await conn.query(
+            `INSERT INTO ${db}.supplier_contacts
+            (supplier_id, name, title, email, phone)
+            VALUES (?, ?, ?, ?, ?)`,
+            [supplierId, contact_name, contact_title, contact_email, contact_phone]
+        );
 
-    // From BODY
-    const { id } = req.body;
-
-    if (!id) {
-        return res.json(responseQueries.error({ message: "Datos incompletos" }));
-    }
-    try {
-        const conn = await getConnection();
-        const db = variablesDB.database;
-
-        const deleteQuery = `
-            DELETE FROM ${db}.Suppliers WHERE id = ?;
-        `;
-
-        const [result] = await conn.query(deleteQuery, [id]);
-
-        if (result.affectedRows === 0) {
-            return res.json(responseQueries.error({ message: "No se encontró el ID o el ID no es válido o inexistente" }));
+        if (!contactInsert) {
+            await conn.rollback();
+            return res.json(responseQueries.error({ message: "Error al guardar el contacto" }));
         }
 
-        return res.json(responseQueries.success({ message: "Datos eliminados con éxito" }));
+        // Confirmar transacción
+        await conn.commit();
+        return res.json(responseQueries.success({ message: "Proveedor y contacto guardados con éxito" }));
     } catch (error) {
-        console.error("Error al eliminar los datos: ", error);
+        await conn.rollback();
         return res.json(responseQueries.error({ message: "Error interno del servidor" }));
     }
-}
+};
