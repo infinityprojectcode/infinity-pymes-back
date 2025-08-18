@@ -59,7 +59,6 @@ import { getCategoriesProducts, saveCategoriesProducts, updateCategoriesProducts
 import { getCategories, saveCategories, updateCategories, deleteCategories } from "../controllers/products/categories.controller.js"
 import { getInventory, saveInventory, updateInventory, deleteInventory } from "../controllers/products/inventory.controller.js"
 import { getProducts, saveProducts, updateProducts, deleteProducts } from "../controllers/products/products.controller.js"
-import { getProducts2, saveProducts2, updateProducts2, deleteProducts2 } from "../controllers/products/products2.controller.js"
 import { getStateStock, saveStateStock, updateStateStock, deleteStateStock } from "../controllers/products/state-stock.controller.js"
 
 // Purchases
@@ -278,12 +277,6 @@ export const routes = () => {
     router.post("/products/i/products", AuthorizationVerify, saveProducts)
     router.put("/products/u/products", AuthorizationVerify, updateProducts)
     router.delete("/products/d/products", AuthorizationVerify, deleteProducts)
-
-    // Products2
-    router.get("/products/g/products2", AuthorizationVerify, getProducts2)
-    router.post("/products/i/products2", AuthorizationVerify, saveProducts2)
-    router.put("/products/u/products2", AuthorizationVerify, updateProducts2)
-    router.delete("/products/d/products2", AuthorizationVerify, deleteProducts2)
 
     // StateStock
     router.get("/products/g/state-stock", AuthorizationVerify, getStateStock)

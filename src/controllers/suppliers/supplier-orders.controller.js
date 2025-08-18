@@ -42,7 +42,6 @@ export const saveSupplierOrdes = async (req, res) => {
     subtotal,
     tax,
     total,
-    date_delivery,
     products,
   } = req.body;
 
@@ -54,7 +53,6 @@ export const saveSupplierOrdes = async (req, res) => {
     !subtotal ||
     !tax ||
     !total ||
-    !date_delivery ||
     !products ||
     products.length === 0
   ) {
@@ -70,19 +68,18 @@ export const saveSupplierOrdes = async (req, res) => {
 
     // Insertar cabecera de orden
     const queryOrder = `
-      INSERT INTO ${db}.purchase_orders 
-        (business_id, code, supplier_id, order_date, date_delivery, subtotal, tax, total, status_id, created_at)
-      VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, NOW())
+      INSERT INTO ${db}.purchase_orders
+        (business_id, code, supplier_id, order_date, status_id, subtotal, tax, total, created_at)
+      VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, NOW())
     `;
     const valuesOrder = [
       business_id,
       code,
       supplier_id,
-      date_delivery,
+      status_id,
       subtotal,
       tax,
       total,
-      status_id,
     ];
     const [orderResult] = await conn.query(queryOrder, valuesOrder);
 
@@ -90,7 +87,7 @@ export const saveSupplierOrdes = async (req, res) => {
 
     // Insertar productos (detalle)
     const queryItems = `
-      INSERT INTO ${db}.purchase_order_items 
+      INSERT INTO ${db}.purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, total)
       VALUES ?
     `;
