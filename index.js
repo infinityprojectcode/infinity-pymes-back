@@ -11,7 +11,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json());
 
-const allowedOrigins = process.env.NODE_ENV === "production" ? ["https://infinitypymes.com", "https://infinity-pymes-front.vercel.app"] : ["http://localhost:1600", "http://localhost:5173", "http://localhost:5174"]
+const allowedOrigins = process.env.NODE_ENV === "production" ? ["https://infinitypymes.com", "https://infinity-pymes-front.vercel.app"] : ["http://localhost:5173", "http://localhost:5174"]
 
 const corsOptions = {
     origin: function (origin, callback) {
