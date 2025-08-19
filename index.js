@@ -6,7 +6,6 @@ import getConnection from "./src/database/connection.mysql.js"
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-// const API_URL = procces.env.API_URL || "/infinity-pymes/server/v1";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }))
