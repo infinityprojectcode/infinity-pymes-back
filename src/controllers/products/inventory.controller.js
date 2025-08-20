@@ -7,6 +7,12 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 // NOTA: Cambiar el business_id a un signo de pregunta (?) al momento de agregar el inicio de sesión, para que asi sea dinámico, actualmente es fijo por no haber login
 
 export const getInventory = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
@@ -24,10 +30,10 @@ export const getInventory = async (req, res) => {
     JOIN ${db}.categories_products cp ON p.category_id = cp.id
     JOIN ${db}.state_stock ss ON i.stock_state_id = ss.id
     JOIN ${db}.suppliers s ON p.supplier_id = s.id
-    WHERE i.business_id = 1
+    WHERE i.business_id = ?
     ORDER BY i.id ASC;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -38,7 +44,7 @@ export const getInventory = async (req, res) => {
 // Save data to the table
 // NOTA: Cuando se haga el login se deben auto completar desde el front los valores que no son una variable (o sea los que son data quemada en la lista de la consulta)
 export const saveInventory = async (req, res) => {
-    const { name, category_id, price, quantity } = req.body;
+    const { business_id, name, category_id, price, quantity } = req.body;
 
     const getStatus = (stock) => {
         if (stock == 0) return 3;
@@ -48,7 +54,7 @@ export const saveInventory = async (req, res) => {
 
     const stock_state_id = getStatus(quantity)
 
-    if (!name || !category_id || !price || !quantity || !stock_state_id) {
+    if (!business_id || !name || !category_id || !price || !quantity || !stock_state_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -63,7 +69,7 @@ export const saveInventory = async (req, res) => {
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         );
         `,
-        [1, category_id, 1, name, null, price, quantity, stock_state_id, quantity, 'Bodega Central']
+        [business_id, category_id, 1, name, null, price, quantity, stock_state_id, quantity, 'Bodega Central']
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
@@ -118,6 +124,7 @@ export const updateInventory = async (req, res) => {
 };
 
 // Delete data from the table
+// NOTA: que traiga el id del inventario y también el id del producto, ya esta el inventario falta el producto, ademas cambiar el SP de la base de datos o hacer que sea eliminación en cascada en la DB
 export const deleteInventory = async (req, res) => {
     // From URL
     const { id } = req.params;

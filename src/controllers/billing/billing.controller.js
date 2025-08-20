@@ -5,6 +5,12 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 // Get data from the table
 // NOTA: El id del where se cambia dependiendo de que usuario es quien consulta, por el momento es 1 pero debe cambiarse a una variable dinámica
 export const getBilling = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
 
@@ -22,11 +28,11 @@ export const getBilling = async (req, res) => {
     JOIN ${db}.customers c ON b.customer_id  = c.id
     JOIN ${db}.state_billing sb ON b.state_billing_id = sb.id
     JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
-    WHERE b.business_id = 1
+    WHERE b.business_id = ?
     GROUP BY b.id, c.name, b.created_at , b.expiration_at, sb.name_state
     ORDER BY b.id ASC;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -37,10 +43,10 @@ export const getBilling = async (req, res) => {
 // Save data to the table
 // NOTA: Agregar la variable de business_id cuando exista login
 export const saveBilling = async (req, res) => {
-    const { customer_id, expiration_at, details } = req.body;
+    const { business_id, customer_id, expiration_at, details } = req.body;
     // details: [{ product_id, quantity, price }, ...]
 
-    if (!customer_id || !expiration_at || !Array.isArray(details) || details.length === 0) {
+    if (!business_id || !customer_id || !expiration_at || !Array.isArray(details) || details.length === 0) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -54,7 +60,7 @@ export const saveBilling = async (req, res) => {
             `INSERT INTO ${db}.billing 
              (business_id, customer_id, total, state_billing_id, expiration_at)
              VALUES (?, ?, ?, ?, ?)`,
-            [1, customer_id, 0, 2, expiration_at]
+            [business_id, customer_id, 0, 2, expiration_at]
         );
 
         const billingId = billingResult.insertId;
