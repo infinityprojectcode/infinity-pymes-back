@@ -41,8 +41,8 @@ export const saveInventory = async (req, res) => {
     const { name, category_id, price, quantity } = req.body;
 
     const getStatus = (stock) => {
-        if (quantity == 0) return 3;
-        if (quantity <= 5) return 2;
+        if (stock == 0) return 3;
+        if (stock <= 5) return 2;
         return 1;
     };
 
@@ -83,8 +83,8 @@ export const updateInventory = async (req, res) => {
     const { category_id, name, price, quantity } = req.body;
 
     const getStatus = (stock) => {
-        if (quantity == 0) return 3;
-        if (quantity <= 5) return 2;
+        if (stock == 0) return 3;
+        if (stock <= 5) return 2;
         return 1;
     };
 
