@@ -162,6 +162,20 @@ export const getRecordsExpenses = async (req, res) => {
     return res.json(select[0]);
 }
 
+export const getExpenseTypes = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT id, name FROM ${db}.expense_types;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
 // Save data to the table
 export const saveOperationalExpenses = async (req, res) => {
     const { column1, column2 } = req.body;

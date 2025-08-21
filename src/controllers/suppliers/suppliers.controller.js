@@ -64,6 +64,20 @@ export const getMySuppliers = async (req, res) => {
     return res.json(select[0]);
 }
 
+export const getSuppliers = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT id, name FROM ${db}.suppliers;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
 // Crear proveedor
 export const saveSuppliers = async (req, res) => {
     const conn = await getConnection();

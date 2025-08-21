@@ -7,7 +7,7 @@ export const getPaymentMethods = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.PaymentMethods`;
+    SELECT id, name FROM ${db}.payment_methods;`;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
