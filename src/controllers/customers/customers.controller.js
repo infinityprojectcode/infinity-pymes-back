@@ -4,11 +4,17 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getCustomers = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT id, name FROM ${db}.customers`;
-    const select = await conn.query(query);
+    SELECT id, name FROM ${db}.customers WHERE business_id = ?`;
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'

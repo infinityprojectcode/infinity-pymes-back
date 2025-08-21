@@ -3,11 +3,171 @@ import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
-export const getOperationalExpenses = async (req, res) => {
+export const getTotalExpenses = async (req, res) => {
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.OperationalExpenses`;
+    SELECT SUM(ed.amount) AS total_gastos
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    WHERE e.state <> 'cancelled';
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getTotalMonthExpenses = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT SUM(ed.amount) AS gastos_mes
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    WHERE e.state <> 'cancelled'
+        AND MONTH(e.date) = MONTH(CURDATE())
+        AND YEAR(e.date) = YEAR(CURDATE());
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getTotalOutstandingExpenses = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT SUM(ed.amount) AS gastos_pendientes
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    WHERE e.state = 'pending';
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getTotalActiveCategories = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT COUNT(id) AS amount FROM ${db}.expense_types;`;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getChartOneExpenses = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT 
+        m.mes,
+        COALESCE(SUM(ed.amount),0) AS gastos,
+        COALESCE(SUM(ie.amount),0) AS ingresos
+    FROM (
+        SELECT 1 AS mes UNION ALL
+        SELECT 2 UNION ALL
+        SELECT 3 UNION ALL
+        SELECT 4 UNION ALL
+        SELECT 5 UNION ALL
+        SELECT 6 UNION ALL
+        SELECT 7 UNION ALL
+        SELECT 8 UNION ALL
+        SELECT 9 UNION ALL
+        SELECT 10 UNION ALL
+        SELECT 11 UNION ALL
+        SELECT 12 
+    ) m
+    LEFT JOIN ${db}.expenses e 
+        ON MONTH(e.date) = m.mes AND YEAR(e.date) = YEAR(CURDATE())
+    LEFT JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+    LEFT JOIN ${db}.income_entries ie 
+        ON MONTH(ie.date) = m.mes AND YEAR(ie.date) = YEAR(CURDATE())
+    GROUP BY m.mes
+    ORDER BY m.mes;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getChartTwoExpenses = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT et.name AS categoria,
+       SUM(ed.amount) AS total_categoria,
+       ROUND(SUM(ed.amount) * 100 / 
+            (SELECT SUM(ed2.amount) 
+             FROM ${db}.expense_details ed2
+             JOIN ${db}.expenses e2 ON ed2.expense_id = e2.id
+             WHERE e2.state <> 'cancelled'), 2) AS porcentaje
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
+    WHERE e.state <> 'cancelled'
+    GROUP BY et.name;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getRecordsExpenses = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT 
+        e.id,
+        DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s') AS date,
+        e.description,
+        et.name AS category,
+        s.name AS supplier,
+        pm.name AS payment_method,
+        ed.amount,
+        e.state,
+        e.receipt_number AS receipt
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
+    LEFT JOIN ${db}.suppliers s ON e.supplier_id = s.id
+    LEFT JOIN ${db}.payment_methods pm ON e.payment_method_id = pm.id
+    ORDER BY e.date DESC;
+    `;
+    const select = await conn.query(query);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getExpenseTypes = async (req, res) => {
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT id, name FROM ${db}.expense_types;
+    `;
     const select = await conn.query(query);
     if (!select) return res.json({
         status: 500,
