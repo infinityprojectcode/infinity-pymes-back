@@ -48,7 +48,7 @@ import { getEvents, saveEvents, updateEvents, deleteEvents } from "../controller
 
 // Expenses
 import { getFunds, saveFunds, updateFunds, deleteFunds } from "../controllers/expenses/funds.controller.js"
-import { getOperationalExpenses, saveOperationalExpenses, updateOperationalExpenses, deleteOperationalExpenses } from "../controllers/expenses/operational-expenses.controller.js"
+import { getTotalExpenses, getTotalMonthExpenses, getTotalOutstandingExpenses, getTotalActiveCategories, getChartOneExpenses, getChartTwoExpenses, getRecordsExpenses, getExpenseTypes, saveOperationalExpenses, updateOperationalExpenses, deleteOperationalExpenses } from "../controllers/expenses/operational-expenses.controller.js"
 
 // Payments
 import { getPaymentMethods, savePaymentMethods, updatePaymentMethods, deletePaymentMethods } from "../controllers/payments/payment-methods.controller.js"
@@ -74,7 +74,7 @@ import { getReportsExported, saveReportsExported, updateReportsExported, deleteR
 // Suppliers
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
-import {getMySuppliers, saveSuppliers, getMySuppliersFilter } from "../controllers/suppliers/suppliers.controller.js"
+import { getMySuppliers, saveSuppliers, getMySuppliersFilter, getSuppliers } from "../controllers/suppliers/suppliers.controller.js"
 import { getMyOrders, saveSupplierOrdes } from "../controllers/suppliers/supplier-orders.controller.js";
 import { getSupplierStatus } from "../controllers/suppliers/supplier-status.controller.js"
 
@@ -108,7 +108,7 @@ export const routes = () => {
     // Users
     router.post("/auth/i/registers/users", AuthorizationVerify, registerUser)
     router.post("/auth/i/login/users", AuthorizationVerify, loginUser)
-    router.get("/auth/g/generate",AuthorizationVerify, generateKeyPair)
+    router.get("/auth/g/generate", AuthorizationVerify, generateKeyPair)
 
     // --------------- Backups ---------------
 
@@ -233,7 +233,14 @@ export const routes = () => {
     router.delete("/expenses/d/funds", AuthorizationVerify, deleteFunds)
 
     // Operational Expenses
-    router.get("/expenses/g/operational-expenses", AuthorizationVerify, getOperationalExpenses)
+    router.get("/expenses/g/expenses-total", AuthorizationVerify, getTotalExpenses)
+    router.get("/expenses/g/expenses-total-month", AuthorizationVerify, getTotalMonthExpenses)
+    router.get("/expenses/g/expenses-total-outstanding", AuthorizationVerify, getTotalOutstandingExpenses)
+    router.get("/expenses/g/expenses-total-categories", AuthorizationVerify, getTotalActiveCategories)
+    router.get("/expenses/g/expenses-chart-one", AuthorizationVerify, getChartOneExpenses)
+    router.get("/expenses/g/expenses-chart-two", AuthorizationVerify, getChartTwoExpenses)
+    router.get("/expenses/g/expenses-records", AuthorizationVerify, getRecordsExpenses)
+    router.get("/expenses/g/expenses-types", AuthorizationVerify, getExpenseTypes)
     router.post("/expenses/i/operational-expenses", AuthorizationVerify, saveOperationalExpenses)
     router.put("/expenses/u/operational-expenses", AuthorizationVerify, updateOperationalExpenses)
     router.delete("/expenses/d/operational-expenses", AuthorizationVerify, deleteOperationalExpenses)
@@ -331,6 +338,7 @@ export const routes = () => {
     router.get("/suppliers/g/suppliers/filter/:id", AuthorizationVerify, getMySuppliersFilter)
     router.post("/suppliers/i/suppliers/orders", AuthorizationVerify, saveSupplierOrdes)
     router.get("/suppliers/g/supplier-status", AuthorizationVerify, getSupplierStatus)
+    router.get("/suppliers/g/suppliers", AuthorizationVerify, getSuppliers)
 
     // Supplier Categories
     router.get("/suppliers/g/supplier-categories", AuthorizationVerify, getSupplierCategories)
