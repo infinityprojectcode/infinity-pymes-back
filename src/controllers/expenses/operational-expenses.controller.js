@@ -139,7 +139,7 @@ export const getRecordsExpenses = async (req, res) => {
     const query = `
     SELECT 
         e.id,
-        DATE_FORMAT(e.date, '%Y-%m-%d') AS date,
+        DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s') AS date,
         e.description,
         et.name AS category,
         s.name AS supplier,
