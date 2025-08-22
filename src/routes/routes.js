@@ -48,7 +48,7 @@ import { getEvents, saveEvents, updateEvents, deleteEvents } from "../controller
 
 // Expenses
 import { getFunds, saveFunds, updateFunds, deleteFunds } from "../controllers/expenses/funds.controller.js"
-import { getTotalExpenses, getTotalMonthExpenses, getTotalOutstandingExpenses, getTotalActiveCategories, getChartOneExpenses, getChartTwoExpenses, getRecordsExpenses, getExpenseTypes, saveOperationalExpenses, updateOperationalExpenses, deleteOperationalExpenses } from "../controllers/expenses/operational-expenses.controller.js"
+import { getTotalExpenses, getTotalMonthExpenses, getTotalOutstandingExpenses, getTotalActiveCategories, getChartOneExpenses, getChartTwoExpenses, getRecordsExpenses, getExpenseTypes, saveExpense, updateOperationalExpenses, deleteOperationalExpenses } from "../controllers/expenses/operational-expenses.controller.js"
 
 // Payments
 import { getPaymentMethods, savePaymentMethods, updatePaymentMethods, deletePaymentMethods } from "../controllers/payments/payment-methods.controller.js"
@@ -241,7 +241,7 @@ export const routes = () => {
     router.get("/expenses/g/expenses-chart-two", AuthorizationVerify, getChartTwoExpenses)
     router.get("/expenses/g/expenses-records", AuthorizationVerify, getRecordsExpenses)
     router.get("/expenses/g/expenses-types", AuthorizationVerify, getExpenseTypes)
-    router.post("/expenses/i/operational-expenses", AuthorizationVerify, saveOperationalExpenses)
+    router.post("/expenses/i/expenses", AuthorizationVerify, saveExpense)
     router.put("/expenses/u/operational-expenses", AuthorizationVerify, updateOperationalExpenses)
     router.delete("/expenses/d/operational-expenses", AuthorizationVerify, deleteOperationalExpenses)
 
