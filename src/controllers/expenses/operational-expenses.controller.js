@@ -152,7 +152,7 @@ export const getRecordsExpenses = async (req, res) => {
     JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
     LEFT JOIN ${db}.suppliers s ON e.supplier_id = s.id
     LEFT JOIN ${db}.payment_methods pm ON e.payment_method_id = pm.id
-    ORDER BY e.date DESC;
+    ORDER BY e.created_at DESC;
     `;
     const select = await conn.query(query);
     if (!select) return res.json({
@@ -177,25 +177,75 @@ export const getExpenseTypes = async (req, res) => {
 }
 
 // Save data to the table
-export const saveOperationalExpenses = async (req, res) => {
-    const { column1, column2 } = req.body;
+export const saveExpense = async (req, res) => {
+    const {
+        business_id,
+        fund_id,
+        user_id,
+        supplier_id,
+        payment_method,
+        description,
+        state,
+        expense_type_id,
+        amount
+    } = req.body;
 
-    if (!column1 || !column2) {
+    // Validación de datos obligatorios
+    if (
+        !business_id || !fund_id || !user_id || !supplier_id ||
+        !payment_method || !description || !state ||
+        !expense_type_id || !amount
+    ) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
     const conn = await getConnection();
     const db = variablesDB.database;
 
-    const insert = await conn.query(
-        `INSERT INTO ${db}.OperationalExpenses (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
-    );
+    try {
+        await conn.beginTransaction();
 
-    if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
+        // 1. Insert en expenses (sin receipt_number aún)
+        const [expenseResult] = await conn.query(
+            `INSERT INTO ${db}.expenses 
+             (business_id, fund_id, user_id, supplier_id, payment_method_id, description, state, date) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [business_id, fund_id, user_id, supplier_id, payment_method, description, state]
+        );
 
-    return res.json(responseQueries.success({ message: "Datos guardados con éxito" }));
+        const expenseId = expenseResult.insertId;
+
+        // 2. Generar receipt_number dinámico
+        const receipt_number = `REC-${String(expenseId).padStart(3, "0")}`;
+
+        // 3. Actualizar registro con el receipt_number
+        await conn.query(
+            `UPDATE ${db}.expenses SET receipt_number = ? WHERE id = ?`,
+            [receipt_number, expenseId]
+        );
+
+        // 4. Insert en expense_details (usando el mismo description)
+        await conn.query(
+            `INSERT INTO ${db}.expense_details 
+             (expense_id, expense_type_id, amount, description) 
+             VALUES (?, ?, ?, ?)`,
+            [expenseId, expense_type_id, amount, description]
+        );
+
+        await conn.commit();
+
+        return res.json(responseQueries.success({
+            message: "Gasto registrado con éxito",
+            expense_id: expenseId,
+            receipt_number
+        }));
+
+    } catch (error) {
+        await conn.rollback();
+        return res.json(responseQueries.error({ message: error.message }));
+    }
 };
+
 
 // Update table data
 export const updateOperationalExpenses = async (req, res) => {
