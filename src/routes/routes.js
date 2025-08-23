@@ -41,7 +41,7 @@ import { getPanelConfig, savePanelConfig, updatePanelConfig, deletePanelConfig }
 
 // Customers
 import { getCustomerStats, saveCustomerStats, updateCustomerStats, deleteCustomerStats } from "../controllers/customers/customer-stats.controller.js"
-import { getCustomers, saveCustomers, updateCustomers, deleteCustomers } from "../controllers/customers/customers.controller.js"
+import { getCustomers, getAllCustomers, saveCustomers, updateCustomers, deleteCustomers } from "../controllers/customers/customers.controller.js"
 
 // Events
 import { getEvents, saveEvents, updateEvents, deleteEvents } from "../controllers/events/events.controller.js"
@@ -212,6 +212,7 @@ export const routes = () => {
 
     // Customers
     router.get("/customers/g/customers", AuthorizationVerify, getCustomers)
+    router.get("/customers/g/customers-all", AuthorizationVerify, getAllCustomers)
     router.post("/customers/i/customers", AuthorizationVerify, saveCustomers)
     router.put("/customers/u/customers", AuthorizationVerify, updateCustomers)
     router.delete("/customers/d/customers", AuthorizationVerify, deleteCustomers)
