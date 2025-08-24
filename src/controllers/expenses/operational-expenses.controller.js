@@ -4,15 +4,22 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getTotalExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
     SELECT SUM(ed.amount) AS total_gastos
     FROM ${db}.expenses e
     JOIN ${db}.expense_details ed ON e.id = ed.expense_id
-    WHERE e.state <> 'cancelled';
+    WHERE e.state <> 'cancelled'
+    AND e.business_id = ?;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -21,17 +28,25 @@ export const getTotalExpenses = async (req, res) => {
 }
 
 export const getTotalMonthExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
     SELECT SUM(ed.amount) AS gastos_mes
     FROM ${db}.expenses e
-    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
     WHERE e.state <> 'cancelled'
+        AND e.business_id = ?
         AND MONTH(e.date) = MONTH(CURDATE())
         AND YEAR(e.date) = YEAR(CURDATE());
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -40,15 +55,23 @@ export const getTotalMonthExpenses = async (req, res) => {
 }
 
 export const getTotalOutstandingExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
     SELECT SUM(ed.amount) AS gastos_pendientes
     FROM ${db}.expenses e
-    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
-    WHERE e.state = 'pending';
+    JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+    WHERE e.state = 'pending'
+    AND e.business_id = ?;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -57,11 +80,18 @@ export const getTotalOutstandingExpenses = async (req, res) => {
 }
 
 export const getTotalActiveCategories = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT COUNT(id) AS amount FROM ${db}.expense_types;`;
-    const select = await conn.query(query);
+    SELECT COUNT(id) AS amount FROM ${db}.expense_types
+    WHERE business_id = ?;`;
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -70,6 +100,12 @@ export const getTotalActiveCategories = async (req, res) => {
 }
 
 export const getChartOneExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
@@ -92,15 +128,18 @@ export const getChartOneExpenses = async (req, res) => {
         SELECT 12 
     ) m
     LEFT JOIN ${db}.expenses e 
-        ON MONTH(e.date) = m.mes AND YEAR(e.date) = YEAR(CURDATE())
+        ON MONTH(e.date) = m.mes 
+        AND YEAR(e.date) = YEAR(CURDATE())
+        AND e.business_id = ?
     LEFT JOIN ${db}.expense_details ed 
         ON e.id = ed.expense_id
     LEFT JOIN ${db}.income_entries ie 
-        ON MONTH(ie.date) = m.mes AND YEAR(ie.date) = YEAR(CURDATE())
+        ON MONTH(ie.date) = m.mes 
+        AND YEAR(ie.date) = YEAR(CURDATE())
     GROUP BY m.mes
     ORDER BY m.mes;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -109,23 +148,40 @@ export const getChartOneExpenses = async (req, res) => {
 }
 
 export const getChartTwoExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT et.name AS categoria,
-       SUM(ed.amount) AS total_categoria,
-       ROUND(SUM(ed.amount) * 100 / 
-            (SELECT SUM(ed2.amount) 
-             FROM ${db}.expense_details ed2
-             JOIN ${db}.expenses e2 ON ed2.expense_id = e2.id
-             WHERE e2.state <> 'cancelled'), 2) AS porcentaje
+    SELECT 
+        et.name AS categoria,
+        SUM(ed.amount) AS total_categoria,
+        ROUND(
+            SUM(ed.amount) * 100 / 
+            (
+                SELECT SUM(ed2.amount) 
+                FROM ${db}.expense_details ed2
+                JOIN ${db}.expenses e2 
+                    ON ed2.expense_id = e2.id
+                WHERE e2.state <> 'cancelled'
+                AND e2.business_id = ?
+            ), 
+            2
+        ) AS porcentaje
     FROM ${db}.expenses e
-    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
-    JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
+    JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+    JOIN ${db}.expense_types et 
+        ON ed.expense_type_id = et.id
     WHERE e.state <> 'cancelled'
+    AND e.business_id = ?
     GROUP BY et.name;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id, business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -134,6 +190,12 @@ export const getChartTwoExpenses = async (req, res) => {
 }
 
 export const getRecordsExpenses = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
@@ -148,13 +210,18 @@ export const getRecordsExpenses = async (req, res) => {
         e.state,
         e.receipt_number AS receipt
     FROM ${db}.expenses e
-    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
-    JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
-    LEFT JOIN ${db}.suppliers s ON e.supplier_id = s.id
-    LEFT JOIN ${db}.payment_methods pm ON e.payment_method_id = pm.id
+    JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+    JOIN ${db}.expense_types et 
+        ON ed.expense_type_id = et.id
+    LEFT JOIN ${db}.suppliers s 
+        ON e.supplier_id = s.id
+    LEFT JOIN ${db}.payment_methods pm 
+        ON e.payment_method_id = pm.id
+    WHERE e.business_id = ?
     ORDER BY e.created_at DESC;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -163,12 +230,18 @@ export const getRecordsExpenses = async (req, res) => {
 }
 
 export const getExpenseTypes = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT id, name FROM ${db}.expense_types;
+    SELECT id, name FROM ${db}.expense_types WHERE business_id = ?;
     `;
-    const select = await conn.query(query);
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'

@@ -3,12 +3,19 @@ import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
+// Se puede cambiar para que sea información del usuario y no de la empresa
 export const getFunds = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT id, name, initial_amount AS amount FROM ${db}.funds;`;
-    const select = await conn.query(query);
+    SELECT id, name, initial_amount AS amount FROM ${db}.funds WHERE business_id = ?;`;
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
