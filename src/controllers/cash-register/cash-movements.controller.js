@@ -3,12 +3,25 @@ import { variablesDB } from "../../utils/params/const.database.js"
 import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
-export const getCashMovements = async (req, res) => {
+export const getDayMovements = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.CashMovements`;
-    const select = await conn.query(query);
+    SELECT SUM(ed.amount) AS gastos_dia
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+    WHERE e.state <> 'cancelled'
+        AND e.business_id = ?
+        AND DATE(e.date) = CURDATE();
+  `;
+    const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
