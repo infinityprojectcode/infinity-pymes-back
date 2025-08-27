@@ -31,7 +31,7 @@ export const getDayIncomeMovements = async (req, res) => {
 }
 
 // Get data from the table
-export const getDayMovements = async (req, res) => {
+export const getDayExpensesMovements = async (req, res) => {
     const { business_id } = req.query;
 
     if (!business_id) {
