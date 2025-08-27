@@ -29,7 +29,7 @@ import { getBusinesses, saveBusinesses, updateBusinesses, deleteBusinesses } fro
 
 // Cash Register
 import { getCashCounts, saveCashCounts, updateCashCounts, deleteCashCounts } from "../controllers/cash-register/cash-counts.controller.js"
-import { getDayMovements, saveCashMovements, updateCashMovements, deleteCashMovements } from "../controllers/cash-register/cash-movements.controller.js"
+import { getDayIncomeMovements, getDayMovements, getMovementsRecords, saveCashMovements, updateCashMovements, deleteCashMovements } from "../controllers/cash-register/cash-movements.controller.js"
 import { getDailyClosures, saveDailyClosures, updateDailyClosures, deleteDailyClosures } from "../controllers/cash-register/daily-closures.controller.js"
 
 // CDI
@@ -169,7 +169,9 @@ export const routes = () => {
     router.delete("/cash-register/d/cash-counts", AuthorizationVerify, deleteCashCounts)
 
     // Cash Movements
+    router.get("/cash-register/g/day-income-movements", AuthorizationVerify, getDayIncomeMovements)
     router.get("/cash-register/g/day-movements", AuthorizationVerify, getDayMovements)
+    router.get("/cash-register/g/movements-records", AuthorizationVerify, getMovementsRecords)
     router.post("/cash-register/i/cash-movements", AuthorizationVerify, saveCashMovements)
     router.put("/cash-register/u/cash-movements", AuthorizationVerify, updateCashMovements)
     router.delete("/cash-register/d/cash-movements", AuthorizationVerify, deleteCashMovements)
