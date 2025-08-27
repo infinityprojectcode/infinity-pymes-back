@@ -18,7 +18,7 @@ export const getBilling = async (req, res) => {
     SELECT
         b.id AS billing_id,
         CONCAT('FAC-', YEAR(NOW()), '-', LPAD(b.id, 3, '0')) AS code,
-        c.name AS customer_name,
+        CONCAT(c.name, ' ', c.lastname) AS customer_name,
         DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS billing_date,
         DATE_FORMAT(b.expiration_at, '%Y-%m-%d %H:%i:%s') AS billing_expiration,
         SUM(bd.quantity) as total_consumption,
