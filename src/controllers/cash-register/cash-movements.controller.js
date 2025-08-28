@@ -55,6 +55,40 @@ export const getDayExpensesMovements = async (req, res) => {
     return res.json(select[0]);
 }
 
+export const getTodayMovements = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT COUNT(*) AS movements_today
+    FROM (
+        SELECT b.id
+        FROM ${db}.billing b
+        JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
+        WHERE b.business_id = ?
+            AND DATE(b.created_at) = CURDATE()
+        GROUP BY b.id
+            UNION ALL
+        SELECT e.id
+        FROM ${db}.expenses e
+        JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+        WHERE e.business_id = ?
+            AND DATE(e.created_at) = CURDATE()
+    ) movements;
+  `;
+    const select = await conn.query(query, [business_id, business_id]);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
 export const getMovementsRecords = async (req, res) => {
     const { business_id } = req.query;
 
