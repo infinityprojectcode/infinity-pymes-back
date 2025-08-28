@@ -16,11 +16,9 @@ export const getDayIncomeMovements = async (req, res) => {
         SUM(bd.subtotal) as income_today
     FROM ${db}.billing b
     JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
-    WHERE b.business_id = 1
-    AND b.state_billing_id = 1
-    AND DATE(b.created_at) = CURDATE()
-    GROUP BY b.id, b.created_at , b.expiration_at
-    ORDER BY b.id ASC;
+    WHERE b.business_id = ?
+        AND b.state_billing_id = 1
+        AND DATE(b.created_at) = CURDATE();
   `;
     const select = await conn.query(query, [business_id]);
     if (!select) return res.json({
