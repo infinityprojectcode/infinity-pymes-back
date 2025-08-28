@@ -137,6 +137,102 @@ export const getMovementsRecords = async (req, res) => {
     return res.json(select[0]);
 }
 
+export const getAuditPaymentMethod = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT 
+        pm_name AS payment_method,
+        SUM(total_amount) AS net_amount
+    FROM (
+        SELECT 
+            pm.name AS pm_name,
+            SUM(bd.subtotal) AS total_amount
+        FROM ${db}.billing b
+        JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
+        LEFT JOIN ${db}.payment_methods pm ON b.payment_method_id = pm.id
+        WHERE b.business_id = ?
+        GROUP BY pm.name
+        UNION ALL
+        SELECT 
+            pm.name AS pm_name,
+            -SUM(ed.amount) AS total_amount
+        FROM ${db}.expenses e
+        JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+        LEFT JOIN ${db}.payment_methods pm ON e.payment_method_id = pm.id
+        WHERE e.business_id = ?
+        GROUP BY pm.name
+    ) AS combined
+    GROUP BY pm_name;
+  `;
+    const select = await conn.query(query, [business_id, business_id]);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getAuditIncomeCategory = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT 
+        bt.name AS category,
+        SUM(bd.subtotal) AS total_amount
+    FROM ${db}.billing b
+    JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
+    JOIN ${db}.billing_types bt ON bd.billing_type_id = bt.id
+    WHERE b.business_id = ?
+    GROUP BY bt.name
+  `;
+    const select = await conn.query(query, [business_id]);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getAuditExpenseCategory = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT 
+        et.name AS category,
+        SUM(ed.amount) AS total_amount
+    FROM ${db}.expenses e
+    JOIN ${db}.expense_details ed ON e.id = ed.expense_id
+    JOIN ${db}.expense_types et ON ed.expense_type_id = et.id
+    WHERE e.business_id = ?
+    GROUP BY et.name;
+  `;
+    const select = await conn.query(query, [business_id]);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
 // Save data to the table
 export const saveCashMovements = async (req, res) => {
     const { column1, column2 } = req.body;
