@@ -104,12 +104,13 @@ export const getMovementsRecords = async (req, res) => {
         'Ingreso' AS type_movement,
         CONCAT('Venta a ', c.name, ' ', c.lastname) AS description,
         'Ventas' AS category,
-        'Efectivo' AS payment_method,
+        pm.name AS payment_method,
         SUM(bd.subtotal) AS amount,
         CONCAT('FAC-', YEAR(NOW()), '-', LPAD(b.id, 3, '0')) AS reference
     FROM ${db}.billing b
     JOIN ${db}.customers c ON b.customer_id = c.id
     JOIN ${db}.billing_detail bd ON b.id = bd.billing_id
+    LEFT JOIN ${db}.payment_methods pm ON b.payment_method_id = pm.id
     WHERE b.business_id = ?
     GROUP BY b.id, b.created_at, c.name, c.lastname
     UNION ALL
