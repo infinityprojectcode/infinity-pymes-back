@@ -4,11 +4,59 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getDailyClosures = async (req, res) => {
+    const { business_id } = req.query;
+
+    if (!business_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.DailyClosures`;
-    const select = await conn.query(query);
+    SELECT 
+      DATE(dc.closure_date) AS closure_date,
+      LAG(dc.closing_amount, 1, 0) OVER (PARTITION BY dc.business_id ORDER BY dc.closure_date) AS opening_balance,
+      b.income_day,
+      e.expenses_day,
+      (
+        LAG(dc.closing_amount, 1, 0) OVER (PARTITION BY dc.business_id ORDER BY dc.closure_date)
+        + COALESCE(b.income_day,0)
+        - COALESCE(e.expenses_day,0)
+      ) AS total_expected,
+      dc.closing_amount,
+      (
+        dc.closing_amount - (
+          LAG(dc.closing_amount, 1, 0) OVER (PARTITION BY dc.business_id ORDER BY dc.closure_date)
+          + COALESCE(b.income_day,0)
+          - COALESCE(e.expenses_day,0)
+        )
+      ) AS difference,
+      u.name AS closed_by_user
+    FROM ${db}.daily_closures dc
+    LEFT JOIN (
+      SELECT DATE(b.created_at) AS fecha, SUM(bd.subtotal) AS income_day
+      FROM ${db}.billing b
+      JOIN ${db}.billing_detail bd 
+        ON b.id = bd.billing_id
+      WHERE b.business_id = ?
+        AND b.state_billing_id = 1
+      GROUP BY DATE(b.created_at)
+    ) b ON DATE(dc.closure_date) = b.fecha
+    LEFT JOIN (
+      SELECT DATE(e.date) AS fecha, SUM(ed.amount) AS expenses_day
+      FROM ${db}.expenses e
+      JOIN ${db}.expense_details ed 
+        ON e.id = ed.expense_id
+      WHERE e.business_id = ?
+        AND e.state <> 'cancelled'
+      GROUP BY DATE(e.date)
+    ) e ON DATE(dc.closure_date) = e.fecha
+    LEFT JOIN ${db}.users u
+      ON dc.closed_by = u.id
+    WHERE dc.business_id = ?
+    ORDER BY closure_date DESC;
+    `;
+    const select = await conn.query(query, [business_id, business_id, business_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'
@@ -18,9 +66,9 @@ export const getDailyClosures = async (req, res) => {
 
 // Save data to the table
 export const saveDailyClosures = async (req, res) => {
-    const { column1, column2 } = req.body;
+    const { business_id, closing_amount, notes, closed_by } = req.body;
 
-    if (!column1 || !column2) {
+    if (!business_id || !closing_amount || notes === undefined || notes === null || !closed_by) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -28,8 +76,10 @@ export const saveDailyClosures = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.DailyClosures (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
+        `INSERT INTO ${db}.daily_closures
+        (business_id, closing_amount, notes, closed_by)
+        VALUES(?, ?, ?, ?);`,
+        [business_id, closing_amount, notes, closed_by]
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
