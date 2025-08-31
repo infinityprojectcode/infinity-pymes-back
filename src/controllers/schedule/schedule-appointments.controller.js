@@ -14,17 +14,19 @@ export const getScheduleAppointments = async (req, res) => {
     const db = variablesDB.database;
     const query = `
     SELECT 
-        id, 
-        title, 
-        client, 
-        DATE_FORMAT(date, '%Y-%m-%d') AS date, 
-        DATE_FORMAT(time, '%H:%i') AS time, 
-        status, 
-        duration, 
-        notes
-    FROM ${db}.schedule_appointments
-    WHERE business_id = ?
-        AND user_id = ?
+        sa.id, 
+        sa.title, 
+        CONCAT(c.name, ' ', c.lastname) AS customer, 
+        DATE_FORMAT(sa.date, '%Y-%m-%d') AS date, 
+        DATE_FORMAT(sa.time, '%H:%i') AS time, 
+        sa.status, 
+        sa.duration, 
+        sa.notes
+    FROM ${db}.schedule_appointments sa
+    JOIN ${db}.customers c ON sa.customer_id = c.id 
+    WHERE sa.business_id = ?
+        AND sa.user_id = ?
+    ORDER BY sa.created_at DESC;
     `;
     const select = await conn.query(query, [business_id, user_id]);
     if (!select) return res.json({
@@ -36,9 +38,9 @@ export const getScheduleAppointments = async (req, res) => {
 
 // Save data to the table
 export const saveScheduleAppointments = async (req, res) => {
-    const { column1, column2 } = req.body;
+    const { title, customer_id, date, time, status, duration, notes, business_id, user_id } = req.body;
 
-    if (!column1 || !column2) {
+    if (!title || !customer_id || !date || !time || !status || !duration || !notes || !business_id || !user_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -46,8 +48,10 @@ export const saveScheduleAppointments = async (req, res) => {
     const db = variablesDB.database;
 
     const insert = await conn.query(
-        `INSERT INTO ${db}.schedule_appointments (column1, column2) VALUES (?, ?)`,
-        [column1, column2]
+        `INSERT INTO ${db}.schedule_appointments
+        (title, customer_id, date, time, status, duration, notes, business_id, user_id)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [title, customer_id, date, time, status, duration, notes, business_id, user_id]
     );
 
     if (!insert) return res.json(responseQueries.error({ message: "Error al guardar los datos" }));
