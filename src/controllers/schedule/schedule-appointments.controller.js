@@ -4,11 +4,29 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getScheduleAppointments = async (req, res) => {
+    const { business_id, user_id } = req.query;
+
+    if (!business_id || !user_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
     const conn = await getConnection();
     const db = variablesDB.database;
     const query = `
-    SELECT * FROM ${db}.schedule_appointments`;
-    const select = await conn.query(query);
+    SELECT 
+        id, 
+        title, 
+        client, 
+        DATE_FORMAT(date, '%Y-%m-%d') AS date, 
+        DATE_FORMAT(time, '%H:%i') AS time, 
+        status, 
+        duration, 
+        notes
+    FROM ${db}.schedule_appointments
+    WHERE business_id = ?
+        AND user_id = ?
+    `;
+    const select = await conn.query(query, [business_id, user_id]);
     if (!select) return res.json({
         status: 500,
         message: 'Error obteniendo los datos'

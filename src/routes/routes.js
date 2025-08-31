@@ -347,8 +347,8 @@ export const routes = () => {
     // Schedule Appointments
     router.get("/schedule/g/schedule-appointments", AuthorizationVerify, getScheduleAppointments)
     router.post("/schedule/i/schedule-appointments", AuthorizationVerify, saveScheduleAppointments)
-    router.put("/schedule/u/schedule-appointments", AuthorizationVerify, updateScheduleAppointments)
-    router.delete("/schedule/d/schedule-appointments", AuthorizationVerify, deleteScheduleAppointments)
+    router.put("/schedule/u/schedule-appointments/:id", AuthorizationVerify, updateScheduleAppointments)
+    router.delete("/schedule/d/schedule-appointments/:id", AuthorizationVerify, deleteScheduleAppointments)
 
     // Schedule Reminders
     router.get("/schedule/g/schedule-reminders", AuthorizationVerify, getScheduleReminders)
