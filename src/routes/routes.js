@@ -71,6 +71,10 @@ import { getPurchaseReceipts, savePurchaseReceipts, updatePurchaseReceipts, dele
 // Reports
 import { getReportsExported, saveReportsExported, updateReportsExported, deleteReportsExported } from "../controllers/reports/reports-exported.controller.js"
 
+// Schedule
+import { getScheduleAppointments, getAppointmentsToday, saveScheduleAppointments, updateScheduleAppointments, deleteScheduleAppointments } from "../controllers/schedule/schedule-appointments.controller.js"
+import { getScheduleReminders, getScheduleReminderTypes, saveScheduleReminders, updateRemindersCompleted, deleteScheduleReminders } from "../controllers/schedule/schedule-reminders.controller.js"
+
 // Suppliers
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
 import { getSupplierContacts, saveSupplierContacts, updateSupplierContacts, deleteSupplierContacts } from "../controllers/suppliers/supplier-contacts.controller.js"
@@ -337,6 +341,24 @@ export const routes = () => {
     router.post("/reports/i/reports-exported", AuthorizationVerify, saveReportsExported)
     router.put("/reports/u/reports-exported", AuthorizationVerify, updateReportsExported)
     router.delete("/reports/d/reports-exported", AuthorizationVerify, deleteReportsExported)
+
+    // --------------- Schedule ---------------
+
+    // Schedule Appointments
+    router.get("/schedule/g/schedule-appointments", AuthorizationVerify, getScheduleAppointments)
+    router.get("/schedule/g/schedule-appointments-today", AuthorizationVerify, getAppointmentsToday)
+    router.post("/schedule/i/schedule-appointments", AuthorizationVerify, saveScheduleAppointments)
+    router.put("/schedule/u/schedule-appointments/:id", AuthorizationVerify, updateScheduleAppointments)
+    router.delete("/schedule/d/schedule-appointments/:id", AuthorizationVerify, deleteScheduleAppointments)
+
+    // Schedule Reminders
+    router.get("/schedule/g/schedule-reminders", AuthorizationVerify, getScheduleReminders)
+    router.get("/schedule/g/schedule-reminders-types", AuthorizationVerify, getScheduleReminderTypes)
+    router.post("/schedule/i/schedule-reminders", AuthorizationVerify, saveScheduleReminders)
+    router.put("/schedule/u/schedule-reminders-completed/:id", AuthorizationVerify, updateRemindersCompleted)
+    router.delete("/schedule/d/schedule-reminders/:id", AuthorizationVerify, deleteScheduleReminders)
+
+    // --------------- Suppliers ---------------
 
     // Suppliers
     router.post("/suppliers/i/supplier-my-bussines/:id", AuthorizationVerify, getMySuppliers)

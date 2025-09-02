@@ -17,7 +17,7 @@ export const getCustomers = async (req, res) => {
   const conn = await getConnection();
   const db = variablesDB.database;
   const query = `
-    SELECT id, name FROM ${db}.customers WHERE business_id = ?`;
+    SELECT id, name, lastname FROM ${db}.customers WHERE business_id = ?`;
   const select = await conn.query(query, [business_id]);
   if (!select)
     return res.json({
