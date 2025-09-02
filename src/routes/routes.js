@@ -73,7 +73,7 @@ import { getReportsExported, saveReportsExported, updateReportsExported, deleteR
 
 // Schedule
 import { getScheduleAppointments, getAppointmentsToday, saveScheduleAppointments, updateScheduleAppointments, deleteScheduleAppointments } from "../controllers/schedule/schedule-appointments.controller.js"
-import { getScheduleReminders, getScheduleReminderTypes, saveScheduleReminders, updateScheduleReminders, deleteScheduleReminders } from "../controllers/schedule/schedule-reminders.controller.js"
+import { getScheduleReminders, getScheduleReminderTypes, saveScheduleReminders, updateRemindersCompleted, deleteScheduleReminders } from "../controllers/schedule/schedule-reminders.controller.js"
 
 // Suppliers
 import { getSupplierCategories, saveSupplierCategories, updateSupplierCategories, deleteSupplierCategories } from "../controllers/suppliers/supplier-categories.controller.js"
@@ -355,7 +355,7 @@ export const routes = () => {
     router.get("/schedule/g/schedule-reminders", AuthorizationVerify, getScheduleReminders)
     router.get("/schedule/g/schedule-reminders-types", AuthorizationVerify, getScheduleReminderTypes)
     router.post("/schedule/i/schedule-reminders", AuthorizationVerify, saveScheduleReminders)
-    router.put("/schedule/u/schedule-reminders/:id", AuthorizationVerify, updateScheduleReminders)
+    router.put("/schedule/u/schedule-reminders-completed/:id", AuthorizationVerify, updateRemindersCompleted)
     router.delete("/schedule/d/schedule-reminders/:id", AuthorizationVerify, deleteScheduleReminders)
 
     // --------------- Suppliers ---------------

@@ -20,7 +20,8 @@ export const getScheduleReminders = async (req, res) => {
         DATE_FORMAT(sr.date, '%Y-%m-%d') AS date,
         DATE_FORMAT(sr.time, '%H:%i') AS time,
         srt.name AS type,
-        sr.priority
+        sr.priority,
+        sr.completed
     FROM ${db}.schedule_reminders sr
     JOIN ${db}.schedule_reminder_types srt ON sr.type_id = srt.id
     WHERE sr.business_id = ?
@@ -71,16 +72,16 @@ export const saveScheduleReminders = async (req, res) => {
 };
 
 // Update table data
-export const updateScheduleReminders = async (req, res) => {
+export const updateRemindersCompleted = async (req, res) => {
     // Depending on how the ID is obtained, whether by URL or from the body, it is saved in a variable in a different way.
 
     // From URL
-    // const { id } = req.params;
+    const { id } = req.params;
 
     // From BODY
-    const { id, column1, column2 } = req.body;
+    const { completed, business_id, user_id } = req.body;
 
-    if (!id || !column1 || !column2) {
+    if (!id || completed === undefined || completed === null || !business_id || !user_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
@@ -88,9 +89,14 @@ export const updateScheduleReminders = async (req, res) => {
         const conn = await getConnection();
         const db = variablesDB.database;
 
-        const update = await conn.query(
-            `UPDATE ${db}.schedule_reminders SET column1 = ?, column2 = ? WHERE id = ?`,
-            [column1, column2, id]
+        const update = await conn.query(`
+        UPDATE ${db}.schedule_reminders
+        SET completed = ?
+        WHERE id = ?
+        AND business_id = ?
+        AND user_id = ?;
+        `,
+            [completed, id, business_id, user_id]
         );
 
         if (update.affectedRows === 0) {
