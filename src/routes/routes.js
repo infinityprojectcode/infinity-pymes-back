@@ -72,7 +72,7 @@ import { getPurchaseReceipts, savePurchaseReceipts, updatePurchaseReceipts, dele
 import { getReportsExported, saveReportsExported, updateReportsExported, deleteReportsExported } from "../controllers/reports/reports-exported.controller.js"
 
 // Schedule
-import { getScheduleAppointments, saveScheduleAppointments, updateScheduleAppointments, deleteScheduleAppointments } from "../controllers/schedule/schedule-appointments.controller.js"
+import { getScheduleAppointments, getAppointmentsToday, saveScheduleAppointments, updateScheduleAppointments, deleteScheduleAppointments } from "../controllers/schedule/schedule-appointments.controller.js"
 import { getScheduleReminders, getScheduleReminderTypes, saveScheduleReminders, updateScheduleReminders, deleteScheduleReminders } from "../controllers/schedule/schedule-reminders.controller.js"
 
 // Suppliers
@@ -346,6 +346,7 @@ export const routes = () => {
 
     // Schedule Appointments
     router.get("/schedule/g/schedule-appointments", AuthorizationVerify, getScheduleAppointments)
+    router.get("/schedule/g/schedule-appointments-today", AuthorizationVerify, getAppointmentsToday)
     router.post("/schedule/i/schedule-appointments", AuthorizationVerify, saveScheduleAppointments)
     router.put("/schedule/u/schedule-appointments/:id", AuthorizationVerify, updateScheduleAppointments)
     router.delete("/schedule/d/schedule-appointments/:id", AuthorizationVerify, deleteScheduleAppointments)

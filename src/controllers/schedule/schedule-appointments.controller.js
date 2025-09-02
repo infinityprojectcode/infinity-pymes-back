@@ -4,7 +4,7 @@ import { responseQueries } from "../../common/enum/queries/response.queries.js"
 
 // Get data from the table
 export const getScheduleAppointments = async (req, res) => {
-    const { business_id, user_id } = req.query;
+    const { business_id, user_id, date } = req.query;
 
     if (!business_id || !user_id) {
         return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
@@ -26,8 +26,36 @@ export const getScheduleAppointments = async (req, res) => {
     JOIN ${db}.customers c ON sa.customer_id = c.id 
     WHERE sa.business_id = ?
         AND sa.user_id = ?
+        AND (? IS NULL OR sa.date = ?)
     ORDER BY sa.created_at DESC;
     `;
+
+    const params = [business_id, user_id, date || null, date || null];
+
+    const select = await conn.query(query, params);
+    if (!select) return res.json({
+        status: 500,
+        message: 'Error obteniendo los datos'
+    });
+    return res.json(select[0]);
+}
+
+export const getAppointmentsToday = async (req, res) => {
+    const { business_id, user_id } = req.query;
+
+    if (!business_id || !user_id) {
+        return res.json(responseQueries.error({ message: "ID perdido, necesitas el ID para hacer la consulta" }));
+    }
+
+    const conn = await getConnection();
+    const db = variablesDB.database;
+    const query = `
+    SELECT COUNT(*) AS total_appointments_today
+    FROM ${db}.schedule_appointments sa
+    WHERE sa.business_id = ?
+        AND sa.user_id = ?
+        AND sa.date = CURDATE();
+  `;
     const select = await conn.query(query, [business_id, user_id]);
     if (!select) return res.json({
         status: 500,
@@ -40,7 +68,7 @@ export const getScheduleAppointments = async (req, res) => {
 export const saveScheduleAppointments = async (req, res) => {
     const { title, customer_id, date, time, status, duration, notes, business_id, user_id } = req.body;
 
-    if (!title || !customer_id || !date || !time || !status || !duration || !notes || !business_id || !user_id) {
+    if (!title || !customer_id || !date || !time || !status || !duration || notes === undefined || notes === null || !business_id || !user_id) {
         return res.json(responseQueries.error({ message: "Datos incompletos" }));
     }
 
